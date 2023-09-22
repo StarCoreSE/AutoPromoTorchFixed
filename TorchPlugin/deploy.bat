@@ -23,8 +23,8 @@ copy /y "%SRC%\manifest.xml" "%TARGET%\"
 REM USE_HARMONY
 REM Comment out or remove the next two lines if
 REM your plugin does not use Harmony for patching:
-echo Copying "%SRC%\0Harmony.dll" into "%TARGET%\"
-copy /y "%SRC%\0Harmony.dll" "%TARGET%\"
+REM echo Copying "%SRC%\0Harmony.dll" into "%TARGET%\"
+REM copy /y "%SRC%\0Harmony.dll" "%TARGET%\"
 
 echo Done
 echo.
