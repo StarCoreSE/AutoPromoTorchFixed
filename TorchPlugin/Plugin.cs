@@ -7,6 +7,7 @@ using Sandbox.Game.World;
 using Sandbox.ModAPI;
 using Torch;
 using Torch.API;
+using VRage.Game;
 using VRage.Game.ModAPI;
 
 namespace AutoPromoTorchFixed
@@ -53,10 +54,23 @@ namespace AutoPromoTorchFixed
             }
         }
 
+        private DateTime lastNotificationTime = DateTime.MinValue;
+
         public override void Update()
         {
             base.Update();
+
+            // Check if at least one second has passed since the last notification.
+            if ((DateTime.Now - lastNotificationTime).TotalSeconds >= 1)
+            {
+                // Show debug notification.
+                MyAPIGateway.Utilities?.ShowNotification("Plugin is running", 1000, MyFontEnum.Green);
+
+                // Update last notification time.
+                lastNotificationTime = DateTime.Now;
+            }
         }
+
 
         public override void Dispose()
         {
