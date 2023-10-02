@@ -7,13 +7,17 @@ using Sandbox.Game.World;
 using Sandbox.ModAPI;
 using Torch;
 using Torch.API;
-using VRage.Game;
 using VRage.Game.ModAPI;
 
 namespace AutoPromoTorchFixed
 {
     public class AutoPromoTorchFixed : TorchPluginBase
     {
+        private DateTime lastPromotionTime = DateTime.MinValue;
+        public static readonly Logger Log = LogManager.GetCurrentClassLogger();
+        private List<IMyPlayer> all_players = new List<IMyPlayer>();
+        private List<IMyPlayer> promoted_players = new List<IMyPlayer>();
+
         public override void Init(ITorchBase torch)
         {
             base.Init(torch);
@@ -26,22 +30,22 @@ namespace AutoPromoTorchFixed
             {
                 if (MyAPIGateway.Session != null && MyAPIGateway.Session.IsServer)
                 {
-                    MyVisualScriptLogicProvider.PlayerSpawned = (SingleKeyPlayerEvent)Delegate.Combine(MyVisualScriptLogicProvider.PlayerSpawned, new SingleKeyPlayerEvent(this.PlayerSpawned));
+                    // Initialize any loaded state-specific logic here
                 }
             }
             else if (newState == TorchGameState.Unloading && MyAPIGateway.Session != null && MyAPIGateway.Session.IsServer)
             {
-                MyVisualScriptLogicProvider.PlayerSpawned = (SingleKeyPlayerEvent)Delegate.Remove(MyVisualScriptLogicProvider.PlayerSpawned, new SingleKeyPlayerEvent(this.PlayerSpawned));
+                // Cleanup any unloading state-specific logic here
             }
         }
 
-        private void PlayerSpawned(long playerId)
+        private void PromotePlayers()
         {
             all_players.Clear();
             MyAPIGateway.Multiplayer.Players.GetPlayers(all_players, null);
             foreach (IMyPlayer myPlayer in all_players)
             {
-                if (myPlayer.IdentityId == playerId && myPlayer.PromoteLevel != MyPromoteLevel.SpaceMaster && myPlayer.PromoteLevel != MyPromoteLevel.Admin)
+                if (myPlayer.PromoteLevel != MyPromoteLevel.SpaceMaster && myPlayer.PromoteLevel != MyPromoteLevel.Admin)
                 {
                     MySession mySession = MyAPIGateway.Session as MySession;
                     if (mySession != null && !promoted_players.Contains(myPlayer))
@@ -54,31 +58,20 @@ namespace AutoPromoTorchFixed
             }
         }
 
-        private DateTime lastNotificationTime = DateTime.MinValue;
-
         public override void Update()
         {
             base.Update();
 
-            // Check if at least one second has passed since the last notification.
-            if ((DateTime.Now - lastNotificationTime).TotalSeconds >= 1)
+            if ((DateTime.Now - lastPromotionTime).TotalSeconds >= 10)
             {
-                // Show debug notification.
-                MyAPIGateway.Utilities?.ShowNotification("Plugin is running", 1000, MyFontEnum.Green);
-
-                // Update last notification time.
-                lastNotificationTime = DateTime.Now;
+                PromotePlayers();
+                lastPromotionTime = DateTime.Now;
             }
         }
-
 
         public override void Dispose()
         {
             base.Dispose();
         }
-
-        public static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        private List<IMyPlayer> all_players = new List<IMyPlayer>();
-        private List<IMyPlayer> promoted_players = new List<IMyPlayer>();
     }
 }
